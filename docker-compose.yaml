@@ -1,104 +1,51 @@
 version: "3"
 
 services:
-  #comments-svc:
-  #  image: "comments-svc:dev"
-  #  build:
-  #    context: "./microservices/comments-svc"
-  #  networks:
-  #    - "frontend"
-  #    - "backend"
-  #    - "commentsdomain"
-  #  expose:
-  #    - "50051"
-  #  depends_on:
-  #    - "comments-db"
-  #  environment:
-  #    NODE_ENV: "test"
-  #    URL: "0.0.0.0"
-  #    PORT: "50051"
-  #    DB_NAME: "postgres"
-  #    DB_HOST: "comments-db"
-  #    DB_PORT: "5432"
-  #    DB_USER: "postgres"
-  #    DB_PASSWORD: "postgres"
-  #  restart: "on-failure"
 
-  #organizations-svc:
-  #  image: "organizations-svc:dev"
-  #  build:
-  #    context: "./microservices/organizations-svc"
-  #  networks:
-  #    - "frontend"
-  #    - "backend"
-  #    - "organizationsdomain"
-  #  expose:
-  #    - "50051"
-  #  depends_on:
-  #    - "organizations-db"
-  #  environment:
-  #    NODE_ENV: "test"
-  #    URL: "0.0.0.0"
-  #    PORT: "50051"
-  #    DB_NAME: "postgres"
-  #    DB_HOST: "organizations-db"
-  #    DB_PORT: "5432"
-  #    DB_USER: "postgres"
-  #    DB_PASSWORD: "postgres"
-  #  restart: "on-failure"
+  nginx:
+    image: nginx:latest
+    container_name: production_nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/error.log:/etc/nginx/error_log.log
+      - ./nginx/cache/:/etc/nginx/cache
+      - /etc/letsencrypt/:/etc/letsencrypt/
+    ports:
+      - 80:80
+      - 443:443
+    networks:
+      - "api"
+      - "inventory-domain"
+    depends_on:
+      - "inventory-service"
+    restart: "on-failure"
 
-  #users-svc:
-  #  image: "users-svc:dev"
-  #  build:
-  #    context: "./microservices/users-svc"
-  #  networks:
-  #    - "frontend"
-  #    - "backend"
-  #    - "usersdomain"
-  #  expose:
-  #    - "50051"
-  #  depends_on:
-  #    - "users-db"
-  #  environment:
-  #    NODE_ENV: "test"
-  #    URL: "0.0.0.0"
-  #    PORT: "50051"
-  #    DB_NAME: "postgres"
-  #   DB_HOST: "users-db"
-  #    DB_PORT: "5432"
-  #    DB_USER: "postgres"
-  #    DB_PASSWORD: "postgres"
-  #  restart: "on-failure"
+  client-web:
+    image: "client-web"
+    build:
+      context: "client-web"
+    networks:
+      - "frontend"
+      - "api"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - "nginx"
+    restart: "on-failure"
 
-  #api-gateway:
-  #  image: "api-gateway:dev"
-  #  build:
-  #    context: "./api-gateway"
-  #  networks:
-  #    - "frontend"
-  #  ports:
-  #    - "3000:3000"
-  #  depends_on:
-  #    - "comments-svc"
-  #    - "organizations-svc"
-  #    - "users-svc"
-  #  environment:
-  #    NODE_ENV: "test"
-  #    PORT: "3000"
-  #    COMMENTS_SVC_URL: "comments-svc"
-  #    COMMENTS_SVC_PORT: "50051"
-  #    ORGANIZATIONS_SVC_URL: "organizations-svc"
-  #    ORGANIZATIONS_SVC_PORT: "50051"
-  #    USERS_SVC_URL: "users-svc"
-  #    USERS_SVC_PORT: "50051"
-  #  healthcheck:
-  #    test: ["CMD", "wget", "localhost:3000/healthz -q -O - > /dev/null 2>&1"]
-  #    interval: 30s
-  #    timeout: 10s
-  #    retries: 5
-  #  restart: "on-failure"
-  inventory-svc:
-    
+  inventory-service:
+    hostname: "inventory"
+    image: "inventory-service"
+    build:
+      context: "microservices/inventory-service"
+    networks:
+      - "inventory-domain"
+      - "database"
+    expose:
+      - "3000"
+    depends_on:
+      - "database"
+
   swagger-ui:
     image: "swaggerapi/swagger-ui:v3.25.0"
     networks:
@@ -110,7 +57,12 @@ services:
     environment:
       SWAGGER_JSON: "/usr/share/spec/openapi-spec.yaml"
     healthcheck:
-      test: ["CMD", "wget", "localhost:8080 -q -O - > /dev/null 2>&1"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "localhost:8080 -q -O - > /dev/null 2>&1"
+        ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -121,16 +73,20 @@ services:
       - "database"
     expose:
       - "5432"
+    ports:
+      - "5432:5432"
     environment:
       POSTGRES_USER: "isamyresfashion"
       POSTGRES_PASSWORD: "7is0122010"
     healthcheck:
-      test: ["CMD-SHELL", "su -c 'pg_isready -U postgres' postgres"]
+      test: [ "CMD-SHELL", "su -c 'pg_isready -U postgres' postgres" ]
       interval: 30s
       timeout: 30s
       retries: 3
     restart: "on-failure"
 
 networks:
-  frontend:
-  database:
+  frontend: null
+  api: null
+  inventory-domain: null
+  database: null
