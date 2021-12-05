@@ -33,6 +33,19 @@ services:
       - "nginx"
     restart: "on-failure"
 
+  purchaseorders-service:
+    hostname: "purchaseorders"
+    image: "purchaseorders-service"
+    build:
+      context: "microservices/purchaseorders-service"
+    networks:
+      - "purchaseorders-domain"
+      - "database"
+    expose:
+      - "3000"
+    depends_on:
+      - "database"
+
   inventory-service:
     hostname: "inventory"
     image: "inventory-service"
@@ -84,9 +97,10 @@ services:
       timeout: 30s
       retries: 3
     restart: "on-failure"
-
+    
 networks:
   frontend: null
   api: null
   inventory-domain: null
+  purchaseorders-domain: null
   database: null

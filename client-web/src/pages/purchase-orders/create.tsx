@@ -38,7 +38,7 @@ import {SubmitHandler, useForm} from 'react-hook-form'
 import * as yup from 'yup'
 import {yupResolver} from '@hookform/resolvers/yup'
 import Link from 'next/link'
-import {RiFilePpt2Line, RiAddLine} from 'react-icons/ri'
+import {RiFileListLine, RiAddLine} from 'react-icons/ri'
 
 type CreateUserProps = {
     name: string;
@@ -182,16 +182,15 @@ export default function CreatePurchaseOrder() {
                             }
                             w="100%">
                             <InputGroup>
-                                <InputLeftElement pointerEvents="none"
-                                    children={<RiFilePpt2Line/>}/>
+                                <InputLeftElement pointerEvents="none"><RiFileListLine/></InputLeftElement>
                                 <input type='file' accept="pdf" name="purchase"
                                     ref={inputRef}
                                     style={
                                         {display: 'none'}
                                 }></input>
                                 <Input placeholder={"Carregar documento ..."}
-                                    onClick={
-                                        () => inputRef.current.click()
+                                    onClick={ ()=>{}
+                                        //() => inputRef.current.click()
                                     }/>
                             </InputGroup>
                             <Button ref={btnRef}
@@ -236,7 +235,7 @@ export default function CreatePurchaseOrder() {
                                     </Td>
                                     <Td>
                                         <Box>
-                                            <Link href="#">
+                                            <Link href="#" passHref>
                                                 <Text fontWeight="bold">
                                                     {
                                                     user.name

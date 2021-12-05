@@ -1,4 +1,5 @@
 import { Flex, Button, Stack } from '@chakra-ui/react'
+import { Logo } from '../components/Header/Logo'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -41,6 +42,7 @@ export default function Home() {
         flexDir="column"
         onSubmit={handleSubmit(handleSingIn)}
       >
+        <Logo />
         <Stack spacing="4">
             <InputForm
               label="E-mail"

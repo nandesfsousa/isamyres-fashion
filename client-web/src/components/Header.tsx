@@ -5,7 +5,6 @@ import { SearchBox } from './Header/SearchBox'
 import { Logo } from './Header/Logo'
 import { useSidebarDrawer } from '../context/SidebarDrawerContext'
 import { RiMenuLine } from 'react-icons/ri'
-
 export function Header(){
   const { onOpen } = useSidebarDrawer()
 
@@ -37,7 +36,7 @@ export function Header(){
         </IconButton>
       )}
 
-      <Logo />
+        <Logo />
 
       { isWideVersion && <SearchBox /> }
 

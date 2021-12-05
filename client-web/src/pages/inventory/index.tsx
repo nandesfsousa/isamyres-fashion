@@ -10,7 +10,7 @@ import { QueryClient } from 'react-query'
 import { queryClient } from '../../services/queryClient'
 import { api } from '../../services/api'
 
-export default function UserList(){
+export default function InventoryList(){
   const [page, setPage] = useState(1)
   const { data, isLoading, isFetching, error } = useUsers(page)
 

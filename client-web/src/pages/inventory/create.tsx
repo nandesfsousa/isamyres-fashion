@@ -201,7 +201,7 @@ export default function InputInventory() {
                                     </Td>
                                     <Td>
                                         <Box>
-                                            <Link href="#">
+                                            <Link href="#" passHref>
                                                 <Text fontWeight="bold">
                                                     {
                                                     user.name
