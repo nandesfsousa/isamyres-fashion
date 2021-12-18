@@ -1,0 +1,98 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Entity {
+  id            String          @id @default(uuid())
+  cnpj          String?         @unique
+  name          String?
+  Inventory     Inventory[]
+  purchaseOrder PurchaseOrder[]
+}
+
+model Warehouse {
+  id        String      @id @default(uuid())
+  name      String?
+  address   String
+  remarks   String
+  isDefault Boolean
+  Inventory Inventory[]
+}
+
+model Item {
+  id             String              @id @default(uuid())
+  description    String?
+  remarks        String
+  quantityInHand Int?
+  reorderPoint   Int                 @default(0)
+  Inventory      Inventory[]
+  purchaseOrder  PurchaseOrderLine[]
+}
+
+model ItemSize {
+  id             String              @id @default(uuid())
+  size           String
+  remarks        String
+  quantityInHand Int?
+  Inventory      Inventory[]
+  purchaseOrder  PurchaseOrderLine[]
+}
+
+model Inventory {
+  id            String     @id @default(uuid())
+  barCode       String
+  quantity      Int?
+  entity        Entity?    @relation(fields: [entityId], references: [id])
+  entityId      String?
+  item          Item?      @relation(fields: [itemId], references: [id])
+  itemId        String?
+  itemSize      ItemSize?  @relation(fields: [itemSizeId], references: [id])
+  itemSizeId    String?
+  warehouse     Warehouse? @relation(fields: [warehouseId], references: [id])
+  warehouseId   String?
+  purchasedRate Float?
+  saleRate      Float?
+  purchasedAt   DateTime   @default(now()) @map(name: "created_at")
+  updatedAt     DateTime   @updatedAt @map(name: "updated_at")
+}
+
+model Provider {
+  id            String          @id @default(uuid())
+  cnpj          String?         @unique
+  name          String?
+  purchaseOrder PurchaseOrder[]
+}
+
+model PurchaseOrder {
+  id                String              @id @default(uuid())
+  providerId        String?
+  remarks           String
+  provider          Provider?           @relation(fields: [providerId], references: [id])
+  entityId          String?
+  purchasedOrderAt  DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+  entity            Entity?             @relation(fields: [entityId], references: [id])
+  purchaseOrderLine PurchaseOrderLine[]
+}
+
+model PurchaseOrderLine {
+  id              String         @id @default(uuid())
+  purchaseOrderId String?
+  quantity        Int?
+  itemId          String?
+  itemSizeId      String?
+  purchasedRate   Float?
+  saleRate        Float?
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  Item            Item?          @relation(fields: [itemId], references: [id])
+  ItemSize        ItemSize?      @relation(fields: [itemSizeId], references: [id])
+  purchaseOrder   PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id])
+}

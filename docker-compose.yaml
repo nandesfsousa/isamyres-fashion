@@ -1,0 +1,155 @@
+version: "3"
+
+services:
+
+  nginx:
+    image: nginx:latest
+    container_name: production_nginx
+    hostname: "production-nginx"
+    volumes:
+      - ./reverse_proxy.conf:/etc/nginx/conf.d/default.conf
+      #- /home/xx/Desktop/cust/xx/Docker/nginx/cert/star_xx_com.pem:/etc/nginx/cert/star_xx_com.pem
+      #- /home/xx/Desktop/cust/xx/Docker/nginx/cert/star_xx_com.key:/etc/nginx/cert/star_xx_com.key
+      #- /home/xx/Desktop/cust/xx/Docker/nginx/cert/star_xx_com.crt:/etc/nginx/cert/star_xx_com.crt
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - "api"
+      - "inventory-domain"
+      - "entitys-domain"
+      - "items-domain"
+      - "providers-domain"
+      - "sizes-domain"
+    depends_on:
+      - "inventory"
+      - "entitys"
+      - "providers"
+      - "items"
+      - "sizes"
+    restart: "on-failure"
+
+  client-web:
+    image: "client-web"
+    build:
+      context: "client-web"
+    networks:
+      - "frontend"
+      - "api"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - "nginx"
+    restart: "on-failure"
+
+  inventory:
+    hostname: "inventory"
+    image: "inventory"
+    build:
+      context: "microservices/inventory"
+    networks:
+      - "inventory-domain"
+      - "database"
+    expose:
+      - "3001"
+    depends_on:
+      - "database"
+  entitys:
+    hostname: "entitys"
+    image: "entitys"
+    build:
+      context: "microservices/entitys"
+    networks:
+      - "entitys-domain"
+      - "database"
+    expose:
+      - "3001"
+    depends_on:
+      - "database"
+  providers:
+    hostname: "providers"
+    image: "providers"
+    build:
+      context: "microservices/providers"
+    networks:
+      - "providers-domain"
+      - "database"
+    expose:
+      - "3001"
+    depends_on:
+      - "database"
+  items:
+    hostname: "items"
+    image: "items"
+    build:
+      context: "microservices/items"
+    networks:
+      - "items-domain"
+      - "database"
+    expose:
+      - "3001"
+    depends_on:
+      - "database"
+  sizes:
+    hostname: "sizes"
+    image: "sizes"
+    build:
+      context: "microservices/sizes"
+    networks:
+      - "sizes-domain"
+      - "database"
+    expose:
+      - "3001"
+    depends_on:
+      - "database"
+  
+  swagger-ui:
+    image: "swaggerapi/swagger-ui:v3.25.0"
+    networks:
+      - "frontend"
+    ports:
+      - "8080:8080"
+    volumes:
+      - "./docs/openapi-spec.yaml:/usr/share/spec/openapi-spec.yaml"
+    environment:
+      SWAGGER_JSON: "/usr/share/spec/openapi-spec.yaml"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "localhost:8080 -q -O - > /dev/null 2>&1"
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  database:
+    image: "postgres:12.1-alpine"
+    hostname: "database"
+    networks:
+      - "database"
+    expose:
+      - "5432"
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: "isamyresfashion"
+      POSTGRES_PASSWORD: "7is0122010"
+    healthcheck:
+      test: [ "CMD-SHELL", "su -c 'pg_isready -U postgres' postgres" ]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    restart: "on-failure"
+    
+networks:
+  frontend: null
+  api: null
+  inventory-domain: null
+  entitys-domain: null
+  providers-domain: null
+  items-domain: null
+  sizes-domain: null
+  purchaseorders-domain: null
+  database: null
